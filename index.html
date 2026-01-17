@@ -142,6 +142,22 @@
         .form-control::placeholder {
             color: #6c757d !important;
         }
+        
+        /* Fix for Bootstrap tabs */
+        .nav-tabs .nav-link {
+            color: rgba(255, 255, 255, 0.75);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: white;
+            background-color: transparent;
+            border-color: transparent;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: white;
+            border-color: transparent;
+        }
     </style>
 </head>
 <body>
@@ -168,23 +184,32 @@
                         
                         <div class="card shadow-lg">
                             <div class="card-header bg-primary-custom text-white">
-                                <ul class="nav nav-tabs card-header-tabs" id="authTabs">
-                                    <li class="nav-item">
-                                        <button class="nav-link active text-white" id="login-tab" data-bs-toggle="tab" data-bs-target="#loginForm">Login</button>
+                                <ul class="nav nav-tabs card-header-tabs" id="authTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active text-white" id="login-tab" data-bs-toggle="tab" 
+                                                data-bs-target="#loginForm" type="button" role="tab">
+                                            Login
+                                        </button>
                                     </li>
-                                    <li class="nav-item">
-                                        <button class="nav-link text-white" id="register-tab" data-bs-toggle="tab" data-bs-target="#registerForm">Register</button>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link text-white" id="register-tab" data-bs-toggle="tab" 
+                                                data-bs-target="#registerForm" type="button" role="tab">
+                                            Register
+                                        </button>
                                     </li>
-                                    <li class="nav-item">
-                                        <button class="nav-link text-white" id="forgot-tab" data-bs-toggle="tab" data-bs-target="#forgotForm">Forgot Password</button>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link text-white" id="forgot-tab" data-bs-toggle="tab" 
+                                                data-bs-target="#forgotForm" type="button" role="tab">
+                                            Forgot Password
+                                        </button>
                                     </li>
                                 </ul>
                             </div>
                             
                             <div class="card-body p-4">
-                                <div class="tab-content">
+                                <div class="tab-content" id="authTabContent">
                                     <!-- Login Form -->
-                                    <div class="tab-pane fade show active" id="loginForm">
+                                    <div class="tab-pane fade show active" id="loginForm" role="tabpanel">
                                         <form id="loginFormElement">
                                             <div class="mb-3">
                                                 <label for="loginMobile" class="form-label">Mobile Number (Username)</label>
@@ -207,10 +232,12 @@
                                                 </div>
                                             </div>
                                             
-                                            <button type="submit" class="btn btn-primary-custom w-100 mb-3">Login</button>
+                                            <button type="submit" class="btn btn-primary-custom w-100 mb-3">
+                                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                                            </button>
                                             
                                             <div class="text-center">
-                                                <a href="#" class="text-decoration-none" onclick="showTab('forgot-tab')">
+                                                <a href="#" class="text-decoration-none" onclick="switchToTab('forgot-tab')">
                                                     <small>Forgot username or password?</small>
                                                 </a>
                                             </div>
@@ -218,7 +245,7 @@
                                     </div>
                                     
                                     <!-- Registration Form -->
-                                    <div class="tab-pane fade" id="registerForm">
+                                    <div class="tab-pane fade" id="registerForm" role="tabpanel">
                                         <form id="registerFormElement">
                                             <div class="mb-3">
                                                 <label for="regMobile" class="form-label">Mobile Number <span class="text-danger">*</span></label>
@@ -251,19 +278,21 @@
                                                 </div>
                                             </div>
                                             
-                                            <button type="submit" class="btn btn-primary-custom w-100">Create Account</button>
+                                            <button type="submit" class="btn btn-primary-custom w-100">
+                                                <i class="fas fa-user-plus me-2"></i>Create Account
+                                            </button>
                                         </form>
                                     </div>
                                     
                                     <!-- Forgot Password Form -->
-                                    <div class="tab-pane fade" id="forgotForm">
+                                    <div class="tab-pane fade" id="forgotForm" role="tabpanel">
                                         <div class="alert alert-info">
-                                            <i class="fas fa-info-circle"></i> Enter your mobile number and email. We will send your username and password.
+                                            <i class="fas fa-info-circle"></i> Enter your mobile number and email. We will send your username and password to <strong>backupserviceprovider37@gmail.com</strong>.
                                         </div>
                                         
                                         <form id="forgotFormElement">
                                             <div class="mb-3">
-                                                <label for="forgotMobile" class="form-label">Mobile Number</label>
+                                                <label for="forgotMobile" class="form-label">Mobile Number <span class="text-danger">*</span></label>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
                                                     <input type="tel" class="form-control" id="forgotMobile" 
@@ -272,7 +301,7 @@
                                             </div>
                                             
                                             <div class="mb-3">
-                                                <label for="forgotEmail" class="form-label">Email Address</label>
+                                                <label for="forgotEmail" class="form-label">Email Address <span class="text-danger">*</span></label>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                                     <input type="email" class="form-control" id="forgotEmail" 
@@ -281,9 +310,11 @@
                                             </div>
                                             
                                             <div class="d-grid gap-2">
-                                                <button type="submit" class="btn btn-primary-custom">Send Credentials</button>
-                                                <button type="button" class="btn btn-outline-secondary" onclick="showTab('login-tab')">
-                                                    Back to Login
+                                                <button type="submit" class="btn btn-primary-custom">
+                                                    <i class="fas fa-paper-plane me-2"></i>Send Credentials
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary" onclick="switchToTab('login-tab')">
+                                                    <i class="fas fa-arrow-left me-2"></i>Back to Login
                                                 </button>
                                             </div>
                                         </form>
@@ -1037,6 +1068,7 @@
         // Configuration
         const APP_VERSION = '1.0.0';
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxU8EIWhQhV4S6QJ_5yFvMQ4v9CFvIEOvospYQlYE_GZROqbpdliMixbkf7Yn0Tff8uLA/exec';
+        const ADMIN_EMAIL = 'backupserviceprovider37@gmail.com';
         
         // Application State
         let currentUser = null;
@@ -1099,7 +1131,7 @@
             elements.loadingOverlay.style.display = 'none';
         }
         
-        function showMessage(text, type = 'info') {
+        function showMessage(text, type = 'info', duration = 5000) {
             const alertTypes = {
                 'success': 'alert-success',
                 'error': 'alert-danger',
@@ -1117,12 +1149,12 @@
             elements.messageContainer.innerHTML = '';
             elements.messageContainer.appendChild(alertDiv);
             
-            // Auto-remove after 5 seconds
+            // Auto-remove after duration
             setTimeout(() => {
                 if (alertDiv.parentNode) {
                     alertDiv.remove();
                 }
-            }, 5000);
+            }, duration);
         }
         
         function showView(viewId) {
@@ -1147,7 +1179,7 @@
             }
         }
         
-        function showTab(tabId) {
+        function switchToTab(tabId) {
             const tabElement = document.getElementById(tabId);
             if (tabElement) {
                 const tab = new bootstrap.Tab(tabElement);
@@ -1223,6 +1255,8 @@
         
         async function login(mobile, password) {
             try {
+                validateMobile(mobile);
+                
                 const result = await callAPI('login', { mobile, password });
                 
                 if (result.success && result.user) {
@@ -1235,15 +1269,15 @@
                     // Load user data
                     await loadUserData();
                     
-                    showMessage('Login successful!', 'success');
+                    showMessage('Login successful! Welcome to Monthly Return Maker', 'success');
                     showView('dashboardView');
                     
                 } else {
-                    showMessage(result.message || 'Login failed. Please try again.', 'error');
+                    showMessage(result.message || 'Invalid mobile or password', 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showMessage('Login error. Please try again.', 'error');
+                showMessage('Login error: ' + error.message, 'error');
             }
         }
         
@@ -1261,14 +1295,18 @@
                 });
                 
                 if (result.success) {
-                    showMessage('Account created successfully! Check your email for details.', 'success');
+                    showMessage('✅ Registration Successful! Your account has been created. Please check your email for login credentials. You can login now.', 'success', 8000);
                     
-                    // Switch to login tab
+                    // Clear form
+                    document.getElementById('registerFormElement').reset();
+                    
+                    // Switch to login tab after 3 seconds
                     setTimeout(() => {
-                        showTab('login-tab');
+                        switchToTab('login-tab');
                         elements.loginMobile.value = mobile;
                         elements.loginPassword.value = '';
-                    }, 2000);
+                        elements.loginMobile.focus();
+                    }, 3000);
                     
                 } else {
                     showMessage(result.message || 'Registration failed. Please try again.', 'error');
@@ -1283,13 +1321,27 @@
                 validateMobile(mobile);
                 validateEmail(email);
                 
-                const result = await callAPI('forgot', { mobile, email });
+                const result = await callAPI('forgot', { 
+                    mobile, 
+                    email,
+                    adminEmail: ADMIN_EMAIL 
+                });
                 
                 if (result.success) {
-                    showMessage('Your credentials have been sent to your email.', 'success');
-                    setTimeout(() => showTab('login-tab'), 3000);
+                    showMessage('✅ Your username and password have been sent to your registered email. Please check your inbox.', 'success', 8000);
+                    
+                    // Clear form
+                    document.getElementById('forgotFormElement').reset();
+                    
+                    // Switch to login tab after 5 seconds
+                    setTimeout(() => {
+                        switchToTab('login-tab');
+                        elements.loginMobile.value = mobile;
+                        elements.loginPassword.focus();
+                    }, 5000);
+                    
                 } else {
-                    showMessage(result.message || 'Mobile or email not found.', 'error');
+                    showMessage(result.message || 'Mobile number or email not found in our records.', 'error');
                 }
             } catch (error) {
                 showMessage(error.message, 'error');
@@ -1304,6 +1356,9 @@
                 teachers = [];
                 selectedClasses = [];
                 currentMonthData = null;
+                
+                // Clear login form
+                document.getElementById('loginFormElement').reset();
                 
                 showView('loginView');
                 showMessage('Logged out successfully.', 'info');
@@ -1401,20 +1456,28 @@
             try {
                 const profileData = {
                     mobile: currentUser,
-                    schoolName: document.getElementById('schoolName').value,
-                    circle: document.getElementById('circle').value,
-                    villageWard: document.getElementById('villageWard').value,
-                    policeStation: document.getElementById('policeStation').value,
-                    postOffice: document.getElementById('postOffice').value,
-                    gramPanchayat: document.getElementById('gramPanchayat').value,
-                    pinCode: document.getElementById('pinCode').value,
-                    diseCode: document.getElementById('diseCode').value,
-                    schoolNumber: document.getElementById('schoolNumber').value
+                    schoolName: document.getElementById('schoolName').value.trim(),
+                    circle: document.getElementById('circle').value.trim(),
+                    villageWard: document.getElementById('villageWard').value.trim(),
+                    policeStation: document.getElementById('policeStation').value.trim(),
+                    postOffice: document.getElementById('postOffice').value.trim(),
+                    gramPanchayat: document.getElementById('gramPanchayat').value.trim(),
+                    pinCode: document.getElementById('pinCode').value.trim(),
+                    diseCode: document.getElementById('diseCode').value.trim(),
+                    schoolNumber: document.getElementById('schoolNumber').value.trim()
                 };
+                
+                // Validate required fields
+                if (!profileData.schoolName || !profileData.circle || !profileData.villageWard || 
+                    !profileData.policeStation || !profileData.postOffice || !profileData.gramPanchayat ||
+                    !profileData.pinCode || !profileData.diseCode || !profileData.schoolNumber) {
+                    showMessage('Please fill all required fields', 'error');
+                    return;
+                }
                 
                 // Validate PIN
                 if (!/^\d{6}$/.test(profileData.pinCode)) {
-                    showMessage('PIN code must be 6 digits', 'error');
+                    showMessage('PIN code must be exactly 6 digits', 'error');
                     return;
                 }
                 
@@ -1422,11 +1485,11 @@
                 
                 if (result.success) {
                     schoolProfile = profileData;
-                    showMessage('School profile saved successfully!', 'success');
+                    showMessage('✅ School profile saved successfully!', 'success');
                     updateDashboard();
                     showView('dashboardView');
                 } else {
-                    showMessage(result.message || 'Failed to save profile', 'error');
+                    showMessage(result.message || 'Failed to save school profile', 'error');
                 }
             } catch (error) {
                 showMessage('Error saving profile: ' + error.message, 'error');
@@ -1491,6 +1554,10 @@
                 document.getElementById('teacherModalTitle').textContent = 'Add New Teacher';
                 document.getElementById('teacherEditId').value = '';
                 form.reset();
+                
+                // Set default dates
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('teacherFirstJoin').value = today;
             }
             
             modal.show();
@@ -1527,12 +1594,12 @@
             try {
                 const teacherData = {
                     mobile: currentUser,
-                    name: document.getElementById('teacherName').value,
+                    name: document.getElementById('teacherName').value.trim(),
                     designation: document.getElementById('teacherDesignation').value,
                     qualification: document.getElementById('teacherQualification').value,
-                    training: document.getElementById('teacherTraining').value,
+                    training: document.getElementById('teacherTraining').value.trim(),
                     dob: document.getElementById('teacherDOB').value,
-                    ropa: document.getElementById('teacherROPA').value,
+                    ropa: document.getElementById('teacherROPA').value || 0,
                     retirement: document.getElementById('teacherRetirement').value,
                     firstJoin: document.getElementById('teacherFirstJoin').value,
                     districtJoin: document.getElementById('teacherDistrictJoin').value,
@@ -1542,7 +1609,7 @@
                 // Validate required fields
                 if (!teacherData.name || !teacherData.designation || !teacherData.qualification || 
                     !teacherData.dob || !teacherData.firstJoin) {
-                    showMessage('Please fill all required fields', 'error');
+                    showMessage('Please fill all required fields (Name, Designation, Qualification, DOB, First Join Date)', 'error');
                     return;
                 }
                 
@@ -1556,7 +1623,7 @@
                     
                     if (result.success) {
                         teachers[editIndex] = { ...teachers[editIndex], ...teacherData };
-                        showMessage('Teacher updated successfully', 'success');
+                        showMessage('✅ Teacher updated successfully', 'success');
                     }
                 } else {
                     // Add new teacher
@@ -1565,7 +1632,7 @@
                     if (result.success) {
                         teacherData.teacher_id = result.teacher_id;
                         teachers.push(teacherData);
-                        showMessage('Teacher added successfully', 'success');
+                        showMessage('✅ Teacher added successfully', 'success');
                     }
                 }
                 
@@ -1619,7 +1686,7 @@
                 
                 if (result.success) {
                     selectedClasses = selected;
-                    showMessage('Classes saved successfully', 'success');
+                    showMessage('✅ Classes saved successfully', 'success');
                     updateDashboard();
                     showView('dashboardView');
                 } else {
@@ -1651,6 +1718,9 @@
             
             // Set current year
             elements.selectYear.value = currentMonth === 0 ? currentYear - 1 : currentYear;
+            
+            // Enable generate button if teachers and classes exist
+            elements.generatePdfBtn.disabled = !(teachers.length > 0 && selectedClasses.length > 0);
             
             // Load teacher leaves table
             loadTeacherLeavesTable();
@@ -1891,13 +1961,13 @@
                 const result = await callAPI('saveMonthlyReturn', monthData);
                 
                 if (result.success) {
-                    showMessage('Monthly return data saved successfully!', 'success');
+                    showMessage('✅ Monthly return data saved successfully! Generating PDF...', 'success');
                     
                     // Generate and download PDF
                     await generatePDF(monthData);
                     
                     // Show success message
-                    showMessage('PDF generated and downloaded successfully!', 'success');
+                    showMessage('✅ PDF generated and downloaded successfully!', 'success');
                     
                     // Redirect to previous returns
                     setTimeout(() => showView('previousReturnsView'), 2000);
@@ -2455,7 +2525,7 @@
                         <p><strong>Mobile:</strong> ${result.school.mobile}</p>
                         <p><strong>Email:</strong> ${result.school.email}</p>
                         <p><strong>Circle:</strong> ${result.school.circle || '-'}</p>
-                        <p><strong>Village/Ward:</strong> ${result.school.villageWard || '-'</p>
+                        <p><strong>Village/Ward:</strong> ${result.school.villageWard || '-'}</p>
                         <p><strong>Police Station:</strong> ${result.school.policeStation || '-'}</p>
                         <p><strong>Post Office:</strong> ${result.school.postOffice || '-'}</p>
                         <p><strong>Gram Panchayat:</strong> ${result.school.gramPanchayat || '-'}</p>
@@ -2483,26 +2553,40 @@
             // Login form
             document.getElementById('loginFormElement').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const mobile = elements.loginMobile.value;
+                const mobile = elements.loginMobile.value.trim();
                 const password = elements.loginPassword.value;
-                login(mobile, password);
+                if (mobile && password) {
+                    login(mobile, password);
+                } else {
+                    showMessage('Please enter mobile number and password', 'error');
+                }
             });
             
             // Registration form
             document.getElementById('registerFormElement').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const mobile = elements.regMobile.value;
+                const mobile = elements.regMobile.value.trim();
                 const password = elements.regPassword.value;
-                const email = elements.regEmail.value;
-                register(mobile, password, email);
+                const email = elements.regEmail.value.trim();
+                
+                if (mobile && password && email) {
+                    register(mobile, password, email);
+                } else {
+                    showMessage('Please fill all fields', 'error');
+                }
             });
             
             // Forgot password form
             document.getElementById('forgotFormElement').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const mobile = elements.forgotMobile.value;
-                const email = elements.forgotEmail.value;
-                forgotPassword(mobile, email);
+                const mobile = elements.forgotMobile.value.trim();
+                const email = elements.forgotEmail.value.trim();
+                
+                if (mobile && email) {
+                    forgotPassword(mobile, email);
+                } else {
+                    showMessage('Please enter mobile number and email', 'error');
+                }
             });
             
             // School profile form
@@ -2580,11 +2664,15 @@
             elements.regMobile.addEventListener('input', function() {
                 // Auto-suggest as username
                 if (this.value.length === 10) {
-                    showMessage('This mobile number will be your username', 'info');
+                    showMessage('This mobile number will be your username', 'info', 3000);
                 }
             });
+            
+            // Test connection on load
+            setTimeout(() => {
+                console.log('App initialized');
+            }, 1000);
         });
     </script>
 </body>
 </html>
-
