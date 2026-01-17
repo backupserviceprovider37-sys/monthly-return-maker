@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monthly Return Maker - West Bengal Primary Schools</title>
+    <title>Monthly Return Maker</title>
     
     <!-- Bengali Font -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -116,35 +116,31 @@
             .container {
                 padding: 10px;
             }
-            /* Fix for text color in forms */
-.form-control, .form-select {
-    color: #333 !important;
-}
-
-/* For success messages */
-.alert-success {
-    color: #0f5132 !important;
-}
-
-/* For error messages */  
-.alert-danger {
-    color: #842029 !important;
-}
-
-/* For info messages */
-.alert-info {
-    color: #055160 !important;
-}
-
-/* For warning messages */
-.alert-warning {
-    color: #664d03 !important;
-}
-
-/* Keep placeholder text grey */
-.form-control::placeholder {
-    color: #6c757d !important;
-}
+        }
+        
+        /* ============== FIX FOR TEXT COLOR ============== */
+        .form-control, .form-select {
+            color: #333 !important;
+        }
+        
+        .alert-success {
+            color: #0f5132 !important;
+        }
+        
+        .alert-danger {
+            color: #842029 !important;
+        }
+        
+        .alert-info {
+            color: #055160 !important;
+        }
+        
+        .alert-warning {
+            color: #664d03 !important;
+        }
+        
+        .form-control::placeholder {
+            color: #6c757d !important;
         }
     </style>
 </head>
@@ -297,7 +293,7 @@
                         </div>
                         
                         <div class="text-center mt-4 text-muted">
-                            <p class="small">© 2026 Monthly Return Maker | West Bengal Primary Education</p>
+                            <p class="small">© 2026 Monthly Return Maker</p>
                             <p class="small bengali">তৈরি করেছেন: সুমিত | সমস্ত ডেটা সুরক্ষিত</p>
                         </div>
                     </div>
@@ -2459,7 +2455,7 @@
                         <p><strong>Mobile:</strong> ${result.school.mobile}</p>
                         <p><strong>Email:</strong> ${result.school.email}</p>
                         <p><strong>Circle:</strong> ${result.school.circle || '-'}</p>
-                        <p><strong>Village/Ward:</strong> ${result.school.villageWard || '-'}</p>
+                        <p><strong>Village/Ward:</strong> ${result.school.villageWard || '-'</p>
                         <p><strong>Police Station:</strong> ${result.school.policeStation || '-'}</p>
                         <p><strong>Post Office:</strong> ${result.school.postOffice || '-'}</p>
                         <p><strong>Gram Panchayat:</strong> ${result.school.gramPanchayat || '-'}</p>
@@ -2591,4 +2587,3 @@
     </script>
 </body>
 </html>
-
