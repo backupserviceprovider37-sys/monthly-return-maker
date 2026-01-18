@@ -1662,41 +1662,45 @@
             });
         }
         
-        async function saveClasses() {
-            try {
-                const classes = ['Pre-Primary', 'Class I', 'Class II', 'Class III', 'Class IV', 'Class V'];
-                const selected = [];
-                
-                classes.forEach(className => {
-                    const checkbox = document.getElementById(`class${className.replace(' ', '')}`);
-                    if (checkbox && checkbox.checked) {
-                        selected.push(className);
-                    }
-                });
-                
-                if (selected.length === 0) {
-                    showMessage('Please select at least one class', 'error');
-                    return;
-                }
-                
-                const result = await callAPI('saveSelectedClasses', {
-                    mobile: currentUser,
-                    classes: selected
-                });
-                
-                if (result.success) {
-                    selectedClasses = selected;
-                    showMessage('✅ Classes saved successfully', 'success');
-                    updateDashboard();
-                    showView('dashboardView');
-                } else {
-                    showMessage(result.message || 'Failed to save classes', 'error');
-                }
-            } catch (error) {
-                showMessage('Error saving classes: ' + error.message, 'error');
-            }
-        }
-        
+     async function saveClasses() {
+  try {
+    const classes = ['Pre-Primary', 'Class I', 'Class II', 'Class III', 'Class IV', 'Class V'];
+    const selected = [];
+    
+    classes.forEach(className => {
+      // Handle the space in class names
+      const elementId = `class${className.replace(' ', '')}`;
+      const checkbox = document.getElementById(elementId);
+      
+      if (checkbox && checkbox.checked) {
+        selected.push(className);
+      }
+    });
+    
+    console.log('Selected classes:', selected); // Debug log
+    
+    if (selected.length === 0) {
+      showMessage('Please select at least one class', 'error');
+      return;
+    }
+    
+    const result = await callAPI('saveSelectedClasses', {
+      mobile: currentUser,
+      classes: JSON.stringify(selected) // Send as JSON string
+    });
+    
+    if (result.success) {
+      selectedClasses = selected;
+      showMessage('✅ Classes saved successfully', 'success');
+      updateDashboard();
+      showView('dashboardView');
+    } else {
+      showMessage(result.message || 'Failed to save classes', 'error');
+    }
+  } catch (error) {
+    showMessage('Error saving classes: ' + error.message, 'error');
+  }
+}
         // =============== MONTHLY RETURN FUNCTIONS ===============
         
         function initializeMonthSelection() {
@@ -2676,6 +2680,7 @@
     </script>
 </body>
 </html>
+
 
 
 
