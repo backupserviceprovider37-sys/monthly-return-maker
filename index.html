@@ -1651,33 +1651,51 @@
         
         // =============== CLASSES FUNCTIONS ===============
         
-        function loadClassesForm() {
-            const classes = ['Pre-Primary', 'Class I', 'Class II', 'Class III', 'Class IV', 'Class V'];
-            
-            classes.forEach(className => {
-                const checkbox = document.getElementById(`class${className.replace(' ', '')}`);
-                if (checkbox) {
-                    checkbox.checked = selectedClasses.includes(className);
-                }
-            });
-        }
+       function loadClassesForm() {
+  if (selectedClasses.length === 0) return;
+  
+  // Set checkboxes based on selected classes
+  const checkboxes = {
+    'Pre-Primary': 'classPrePrimary',
+    'Class I': 'classI',
+    'Class II': 'classII',
+    'Class III': 'classIII',
+    'Class IV': 'classIV',
+    'Class V': 'classV'
+  };
+  
+  selectedClasses.forEach(className => {
+    const checkboxId = checkboxes[className];
+    if (checkboxId) {
+      const checkbox = document.getElementById(checkboxId);
+      if (checkbox) checkbox.checked = true;
+    }
+  });
+}
         
-     async function saveClasses() {
+    
+  async function saveClasses() {
   try {
-    const classes = ['Pre-Primary', 'Class I', 'Class II', 'Class III', 'Class IV', 'Class V'];
     const selected = [];
     
-    classes.forEach(className => {
-      // Handle the space in class names
-      const elementId = `class${className.replace(' ', '')}`;
-      const checkbox = document.getElementById(elementId);
-      
+    // Directly check each checkbox by its actual ID
+    const checkboxes = [
+      { id: 'classPrePrimary', value: 'Pre-Primary' },
+      { id: 'classI', value: 'Class I' },
+      { id: 'classII', value: 'Class II' },
+      { id: 'classIII', value: 'Class III' },
+      { id: 'classIV', value: 'Class IV' },
+      { id: 'classV', value: 'Class V' }
+    ];
+    
+    checkboxes.forEach(item => {
+      const checkbox = document.getElementById(item.id);
       if (checkbox && checkbox.checked) {
-        selected.push(className);
+        selected.push(item.value);
       }
     });
     
-    console.log('Selected classes:', selected); // Debug log
+    console.log('Selected classes:', selected);
     
     if (selected.length === 0) {
       showMessage('Please select at least one class', 'error');
@@ -1686,7 +1704,7 @@
     
     const result = await callAPI('saveSelectedClasses', {
       mobile: currentUser,
-      classes: JSON.stringify(selected) // Send as JSON string
+      classes: JSON.stringify(selected)
     });
     
     if (result.success) {
@@ -2680,6 +2698,7 @@
     </script>
 </body>
 </html>
+
 
 
 
