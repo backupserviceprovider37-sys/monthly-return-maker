@@ -1066,8 +1066,8 @@
     
     <script>
         // Configuration
-        const APP_VERSION = '1.0.0';
-       const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBt0vHFj0kLCoem6591k8oRJV5x6tmKxluPfctLbFuWyanpql08rVF4Rn6XGs96MqqZw/exec';
+        const APP_VERSION = '2.0.0';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBt0vHFj0kLCoem6591k8oRJV5x6tmKxluPfctLbFuWyanpql08rVF4Rn6XGs96MqqZw/exec';
         const ADMIN_EMAIL = 'backupserviceprovider37@gmail.com';
         
         // Application State
@@ -1228,15 +1228,20 @@
                     return result;
                 }
                 
-                // For POST requests
-                const formData = new FormData();
+                // For POST requests - Use URLSearchParams
+                const params = new URLSearchParams();
                 for (const key in data) {
-                    formData.append(key, data[key]);
+                    if (data[key] !== undefined && data[key] !== null) {
+                        params.append(key, data[key]);
+                    }
                 }
                 
                 const response = await fetch(url, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: params.toString()
                 });
                 
                 const result = await response.json();
@@ -1652,26 +1657,26 @@
         // =============== CLASSES FUNCTIONS ===============
         
        function loadClassesForm() {
-  if (selectedClasses.length === 0) return;
-  
-  // Set checkboxes based on selected classes
-  const checkboxes = {
-    'Pre-Primary': 'classPrePrimary',
-    'Class I': 'classI',
-    'Class II': 'classII',
-    'Class III': 'classIII',
-    'Class IV': 'classIV',
-    'Class V': 'classV'
-  };
-  
-  selectedClasses.forEach(className => {
-    const checkboxId = checkboxes[className];
-    if (checkboxId) {
-      const checkbox = document.getElementById(checkboxId);
-      if (checkbox) checkbox.checked = true;
-    }
-  });
-}
+          if (selectedClasses.length === 0) return;
+          
+          // Set checkboxes based on selected classes
+          const checkboxes = {
+            'Pre-Primary': 'classPrePrimary',
+            'Class I': 'classI',
+            'Class II': 'classII',
+            'Class III': 'classIII',
+            'Class IV': 'classIV',
+            'Class V': 'classV'
+          };
+          
+          selectedClasses.forEach(className => {
+            const checkboxId = checkboxes[className];
+            if (checkboxId) {
+              const checkbox = document.getElementById(checkboxId);
+              if (checkbox) checkbox.checked = true;
+            }
+          });
+        }
         
     
   async function saveClasses() {
@@ -1719,6 +1724,7 @@
     showMessage('Error saving classes: ' + error.message, 'error');
   }
 }
+        
         // =============== MONTHLY RETURN FUNCTIONS ===============
         
         function initializeMonthSelection() {
@@ -1931,7 +1937,7 @@
                     showMessage('Please enter valid working days (1-31)', 'error');
                     return;
                 }
-                
+
                 // Collect teacher leaves data
                 const teacherLeaves = [];
                 teachers.forEach((teacher, index) => {
@@ -1948,45 +1954,62 @@
                     leaves.present = Math.max(0, workingDays - leaves.total);
                     teacherLeaves.push(leaves);
                 });
-                
+
                 // Collect student data
                 const studentData = [];
                 selectedClasses.forEach(className => {
+                    const boysInput = document.querySelector(`.student-boys[data-class="${className}"]`);
+                    const girlsInput = document.querySelector(`.student-girls[data-class="${className}"]`);
+                    const remarksInput = document.querySelector(`input[data-class="${className}"]:last-of-type`);
+                    
                     const data = {
                         class: className,
-                        boys: parseInt(document.querySelector(`.student-boys[data-class="${className}"]`).value) || 0,
-                        girls: parseInt(document.querySelector(`.student-girls[data-class="${className}"]`).value) || 0,
-                        remarks: document.querySelector(`input[data-class="${className}"]:last-of-type`).value || ''
+                        boys: parseInt(boysInput?.value) || 0,
+                        girls: parseInt(girlsInput?.value) || 0,
+                        remarks: remarksInput?.value || ''
                     };
                     studentData.push(data);
                 });
-                
-                // Prepare month data
-               const monthData = {
-    mobile: currentUser,
-    month: parseInt(document.getElementById('selectMonth').value),
-    year: parseInt(elements.selectYear.value),
-    workingDays: workingDays,
-    teacherLeaves: JSON.stringify(teacherLeaves),  // ← STRING
-    studentData: JSON.stringify(studentData)       // ← STRING
-};
-                
+
                 // Validate month is not in future
+                const month = parseInt(document.getElementById('selectMonth').value);
+                const year = parseInt(elements.selectYear.value);
                 const currentDate = new Date();
-                const selectedDate = new Date(monthData.year, monthData.month - 1);
+                const selectedDate = new Date(year, month - 1);
                 if (selectedDate > currentDate) {
                     showMessage('Cannot create returns for future months', 'error');
                     return;
                 }
-                
+
+                // Prepare data for API
+                const apiData = {
+                    mobile: currentUser,
+                    month: month,
+                    year: year,
+                    workingDays: workingDays,
+                    teacherLeaves: JSON.stringify(teacherLeaves),  // Stringify for API
+                    studentData: JSON.stringify(studentData)       // Stringify for API
+                };
+
                 // Save to database
-                const result = await callAPI('saveMonthlyReturn', monthData);
-                
+                showLoading('Saving data to database...');
+                const result = await callAPI('saveMonthlyReturn', apiData);
+
                 if (result.success) {
                     showMessage('✅ Monthly return data saved successfully! Generating PDF...', 'success');
                     
+                    // Prepare data for PDF generation (arrays, not strings)
+                    const pdfData = {
+                        mobile: currentUser,
+                        month: month,
+                        year: year,
+                        workingDays: workingDays,
+                        teacherLeaves: teacherLeaves,  // Array for PDF
+                        studentData: studentData       // Array for PDF
+                    };
+                    
                     // Generate and download PDF
-                    await generatePDF(monthData);
+                    await generatePDF(pdfData);
                     
                     // Show success message
                     showMessage('✅ PDF generated and downloaded successfully!', 'success');
@@ -1999,6 +2022,7 @@
                 
             } catch (error) {
                 showMessage('Error generating return: ' + error.message, 'error');
+                console.error('Generate monthly return error:', error);
             }
         }
         
@@ -2008,11 +2032,11 @@
             showLoading('Generating PDF...');
             
             try {
-                // Calculate number of pages needed (7 teachers per page)
-                const teachersPerPage = 7;
-                const totalPages = Math.ceil(teachers.length / teachersPerPage);
+                // Check if jsPDF is available
+                if (typeof window.jspdf === 'undefined') {
+                    throw new Error('PDF library not loaded');
+                }
                 
-                // Create PDF using jsPDF
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 
@@ -2021,305 +2045,214 @@
                                   "July", "August", "September", "October", "November", "December"];
                 const monthName = monthNames[monthData.month - 1];
                 
-                // Generate each page
-                for (let page = 0; page < totalPages; page++) {
-                    if (page > 0) {
-                        pdf.addPage();
-                    }
-                    
-                    // Add header (same on every page)
-                    addHeader(pdf, monthData, monthName, page + 1, totalPages);
-                    
-                    // Add school info (same on every page)
-                    addSchoolInfo(pdf, monthData, monthName);
-                    
-                    // Add teacher table for this page
-                    const startIdx = page * teachersPerPage;
-                    const endIdx = Math.min(startIdx + teachersPerPage, teachers.length);
-                    const pageTeachers = teachers.slice(startIdx, endIdx);
-                    const pageTeacherLeaves = monthData.teacherLeaves.slice(startIdx, endIdx);
-                    
-                    addTeacherTable(pdf, pageTeachers, pageTeacherLeaves, monthData.workingDays, startIdx);
-                    
-                    // Add student data (only on last page)
-                    if (page === totalPages - 1) {
-                        addStudentData(pdf, monthData.studentData);
-                        
-                        // Add signature section
-                        addSignatures(pdf);
-                    }
+                // Add header
+                pdf.setFontSize(16);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text('MONTHLY RETURN OF PRIMARY SCHOOL', 105, 20, { align: 'center' });
+                
+                pdf.setFontSize(12);
+                pdf.text(`For the month of ${monthName} ${monthData.year}`, 105, 30, { align: 'center' });
+                
+                // Add school information
+                pdf.setFontSize(10);
+                pdf.setFont('helvetica', 'normal');
+                
+                let yPos = 50;
+                if (schoolProfile) {
+                    pdf.text(`School Name: ${schoolProfile.schoolName || ''}`, 20, yPos);
+                    yPos += 7;
+                    pdf.text(`Circle: ${schoolProfile.circle || ''}`, 20, yPos);
+                    yPos += 7;
+                    pdf.text(`Village/Ward: ${schoolProfile.villageWard || ''}`, 20, yPos);
+                    yPos += 7;
+                    pdf.text(`DISE Code: ${schoolProfile.diseCode || ''}`, 20, yPos);
+                    yPos += 7;
+                    pdf.text(`School Number: ${schoolProfile.schoolNumber || ''}`, 20, yPos);
+                    yPos += 7;
+                    pdf.text(`Working Days: ${monthData.workingDays}`, 20, yPos);
                 }
                 
+                yPos += 15;
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(12);
+                pdf.text('TEACHER LEAVE DETAILS', 20, yPos);
+                
+                yPos += 10;
+                pdf.setFontSize(10);
+                pdf.setFont('helvetica', 'normal');
+                
+                // Teacher table headers
+                const headers = ['Teacher', 'Casual', 'Commuted', 'Half Pay', 'Maternity', 'Without Pay', 'Total', 'Present'];
+                const colWidths = [40, 15, 15, 15, 15, 15, 15, 15];
+                
+                // Draw header
+                let xPos = 20;
+                headers.forEach((header, index) => {
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text(header, xPos, yPos);
+                    xPos += colWidths[index];
+                });
+                
+                yPos += 7;
+                
+                // Teacher data
+                monthData.teacherLeaves.forEach((leaves, index) => {
+                    const teacher = teachers[index] || {};
+                    xPos = 20;
+                    pdf.setFont('helvetica', 'normal');
+                    
+                    // Teacher name (truncate if too long)
+                    const teacherName = teacher.Name ? teacher.Name.substring(0, 15) : `Teacher ${index + 1}`;
+                    pdf.text(teacherName, xPos, yPos);
+                    xPos += colWidths[0];
+                    
+                    // Leave details
+                    pdf.text(leaves.casual.toString(), xPos, yPos);
+                    xPos += colWidths[1];
+                    pdf.text(leaves.commuted.toString(), xPos, yPos);
+                    xPos += colWidths[2];
+                    pdf.text(leaves.halfpay.toString(), xPos, yPos);
+                    xPos += colWidths[3];
+                    pdf.text(leaves.maternity.toString(), xPos, yPos);
+                    xPos += colWidths[4];
+                    pdf.text(leaves.withoutpay.toString(), xPos, yPos);
+                    xPos += colWidths[5];
+                    pdf.text(leaves.total.toString(), xPos, yPos);
+                    xPos += colWidths[6];
+                    pdf.text(leaves.present.toString(), xPos, yPos);
+                    
+                    yPos += 6;
+                    
+                    // Add new page if needed
+                    if (yPos > 270) {
+                        pdf.addPage();
+                        yPos = 20;
+                    }
+                });
+                
+                // Student information section
+                yPos += 15;
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(12);
+                pdf.text('STUDENT INFORMATION', 20, yPos);
+                
+                yPos += 10;
+                pdf.setFontSize(10);
+                pdf.setFont('helvetica', 'normal');
+                
+                let totalBoys = 0;
+                let totalGirls = 0;
+                
+                monthData.studentData.forEach(student => {
+                    pdf.text(`${student.class}: Boys - ${student.boys}, Girls - ${student.girls}, Total - ${student.boys + student.girls}`, 20, yPos);
+                    yPos += 6;
+                    totalBoys += student.boys;
+                    totalGirls += student.girls;
+                    
+                    if (yPos > 270) {
+                        pdf.addPage();
+                        yPos = 20;
+                    }
+                });
+                
+                yPos += 6;
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(`GRAND TOTAL: Boys - ${totalBoys}, Girls - ${totalGirls}, Total Students - ${totalBoys + totalGirls}`, 20, yPos);
+                
+                // Signatures
+                yPos += 20;
+                pdf.setFont('helvetica', 'normal');
+                pdf.line(30, yPos, 80, yPos);
+                pdf.text('Head Teacher', 55, yPos + 5, { align: 'center' });
+                
+                pdf.line(130, yPos, 180, yPos);
+                pdf.text('SMC President', 155, yPos + 5, { align: 'center' });
+                
+                // Footer
+                pdf.setFontSize(8);
+                pdf.text(`Generated on: ${new Date().toLocaleDateString('en-GB')}`, 105, 290, { align: 'center' });
+                
                 // Download PDF
-                const fileName = `Monthly_Return_${schoolProfile.schoolNumber}_${monthName}_${monthData.year}.pdf`;
+                const schoolNumber = schoolProfile ? schoolProfile.schoolNumber : 'Unknown';
+                const fileName = `Monthly_Return_${schoolNumber}_${monthName}_${monthData.year}.pdf`;
                 pdf.save(fileName);
                 
-                // Save to database
+                // Save record to database
                 await callAPI('saveGeneratedPDF', {
                     mobile: currentUser,
                     month: monthData.month,
                     year: monthData.year,
                     filename: fileName,
-                    pages: totalPages
+                    pages: pdf.internal.getNumberOfPages()
                 });
+                
+                hideLoading();
                 
             } catch (error) {
                 console.error('PDF generation error:', error);
-                showMessage('Error generating PDF: ' + error.message, 'error');
-            } finally {
+                
+                // Create a simple text file as fallback
+                try {
+                    createTextFallback(monthData);
+                    showMessage('PDF generation failed, but text file was downloaded instead.', 'warning');
+                } catch (fallbackError) {
+                    showMessage('Error generating PDF: ' + error.message + '. Data was saved to database.', 'error');
+                }
+                
                 hideLoading();
             }
         }
         
-        function addHeader(pdf, monthData, monthName, page, totalPages) {
-            // Header styling
-            pdf.setFontSize(16);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(0, 0, 0);
+        // Fallback function in case PDF generation fails
+        function createTextFallback(monthData) {
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                              "July", "August", "September", "October", "November", "December"];
+            const monthName = monthNames[monthData.month - 1];
             
-            // Title
-            pdf.text('MONTHLY RETURN OF PRIMARY SCHOOL', 105, 15, { align: 'center' });
-            pdf.setFontSize(10);
-            pdf.text('(As per RTE Act 2009)', 105, 20, { align: 'center' });
+            let textContent = `MONTHLY RETURN OF PRIMARY SCHOOL\n`;
+            textContent += `For the month of ${monthName} ${monthData.year}\n\n`;
             
-            // Page number
-            pdf.setFontSize(8);
-            pdf.text(`Page ${page} of ${totalPages}`, 190, 10, { align: 'right' });
+            if (schoolProfile) {
+                textContent += `School: ${schoolProfile.schoolName || ''}\n`;
+                textContent += `Circle: ${schoolProfile.circle || ''}\n`;
+                textContent += `DISE Code: ${schoolProfile.diseCode || ''}\n`;
+                textContent += `School Number: ${schoolProfile.schoolNumber || ''}\n`;
+            }
             
-            // Line separator
-            pdf.setLineWidth(0.5);
-            pdf.line(10, 25, 200, 25);
-        }
-        
-        function addSchoolInfo(pdf, monthData, monthName) {
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'normal');
+            textContent += `Working Days: ${monthData.workingDays}\n\n`;
             
-            // School info box (yellow background simulation)
-            pdf.setFillColor(255, 250, 205);
-            pdf.rect(10, 30, 190, 40, 'F');
+            textContent += `TEACHER LEAVE DETAILS:\n`;
+            textContent += `Teacher Name | Casual | Commuted | Half Pay | Maternity | Without Pay | Total | Present\n`;
+            textContent += `--------------------------------------------------------------------------\n`;
             
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('SCHOOL INFORMATION', 105, 35, { align: 'center' });
-            
-            pdf.setFont('helvetica', 'normal');
-            let yPos = 42;
-            
-            // School details
-            const details = [
-                { label: 'School Name:', value: schoolProfile.schoolName },
-                { label: 'Circle:', value: schoolProfile.circle },
-                { label: 'Village/Ward:', value: schoolProfile.villageWard },
-                { label: 'P.S.:', value: schoolProfile.policeStation },
-                { label: 'Post Office:', value: schoolProfile.postOffice },
-                { label: 'Gram Panchayat/Municipality:', value: schoolProfile.gramPanchayat },
-                { label: 'PIN:', value: schoolProfile.pinCode },
-                { label: 'DISE Code:', value: schoolProfile.diseCode },
-                { label: 'School No.:', value: schoolProfile.schoolNumber },
-                { label: 'Month:', value: `${monthName} ${monthData.year}` }
-            ];
-            
-            // Two columns
-            details.forEach((detail, index) => {
-                const xPos = index % 2 === 0 ? 15 : 110;
-                const row = Math.floor(index / 2);
-                
-                pdf.setFont('helvetica', 'bold');
-                pdf.text(detail.label, xPos, yPos + (row * 5));
-                
-                pdf.setFont('helvetica', 'normal');
-                pdf.text(detail.value || '', xPos + 40, yPos + (row * 5));
-            });
-        }
-        
-        function addTeacherTable(pdf, pageTeachers, pageTeacherLeaves, workingDays, startIdx) {
-            const startY = 75;
-            
-            // Table header
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9);
-            
-            const headers = ['SL', 'Teacher Name', 'Designation', 'Qualification', 'DOB', 'Salary', 'Retirement', 'First Join', 'Present Join'];
-            const colWidths = [8, 35, 20, 25, 20, 20, 20, 20, 22];
-            
-            let xPos = 10;
-            headers.forEach((header, index) => {
-                pdf.text(header, xPos + colWidths[index]/2, startY, { align: 'center' });
-                xPos += colWidths[index];
+            monthData.teacherLeaves.forEach((leaves, index) => {
+                const teacher = teachers[index] || {};
+                textContent += `${teacher.Name || `Teacher ${index + 1}`} | ${leaves.casual} | ${leaves.commuted} | ${leaves.halfpay} | ${leaves.maternity} | ${leaves.withoutpay} | ${leaves.total} | ${leaves.present}\n`;
             });
             
-            // Draw table lines
-            pdf.setLineWidth(0.1);
-            pdf.line(10, startY + 2, 200, startY + 2);
-            
-            // Teacher rows
-            let currentY = startY + 8;
-            
-            pageTeachers.forEach((teacher, index) => {
-                const globalIndex = startIdx + index;
-                const leaves = pageTeacherLeaves[index];
-                
-                // Alternate row color
-                if (index % 2 === 0) {
-                    pdf.setFillColor(240, 240, 240);
-                    pdf.rect(10, currentY - 3, 190, 8, 'F');
-                }
-                
-                pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(8);
-                
-                xPos = 10;
-                const rowData = [
-                    (globalIndex + 1).toString(),
-                    teacher.Name,
-                    teacher.Designation,
-                    teacher.Qualification,
-                    formatDate(teacher.DOB, 'dd/mm/yyyy'),
-                    teacher['ROPA-19'] || '0',
-                    formatDate(teacher.Retainment, 'dd/mm/yyyy'),
-                    formatDate(teacher['First Join'], 'dd/mm/yyyy'),
-                    formatDate(teacher['Present School Join'], 'dd/mm/yyyy') || '-'
-                ];
-                
-                rowData.forEach((data, colIndex) => {
-                    // Truncate long text
-                    const text = data || '';
-                    const maxWidth = colWidths[colIndex] - 2;
-                    
-                    pdf.text(text.substring(0, 15), xPos + 1, currentY, { maxWidth });
-                    xPos += colWidths[colIndex];
-                });
-                
-                currentY += 8;
-            });
-            
-            // Leave section header
-            currentY += 5;
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(9);
-            pdf.text('LEAVE DETAILS FOR THE MONTH', 105, currentY, { align: 'center' });
-            currentY += 5;
-            
-            // Leave table headers
-            const leaveHeaders = ['Teacher', 'Casual', 'Commuted', 'Half Pay', 'Maternity', 'Without Pay', 'Total Leaves', 'Present Days'];
-            const leaveWidths = [35, 15, 15, 15, 15, 15, 15, 15];
-            
-            xPos = 10;
-            leaveHeaders.forEach((header, index) => {
-                pdf.text(header, xPos + leaveWidths[index]/2, currentY, { align: 'center' });
-                xPos += leaveWidths[index];
-            });
-            
-            currentY += 5;
-            
-            // Leave data rows
-            pageTeacherLeaves.forEach((leaves, index) => {
-                pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(8);
-                
-                xPos = 10;
-                const leaveData = [
-                    pageTeachers[index].Name.substring(0, 15),
-                    leaves.casual.toString(),
-                    leaves.commuted.toString(),
-                    leaves.halfpay.toString(),
-                    leaves.maternity.toString(),
-                    leaves.withoutpay.toString(),
-                    leaves.total.toString(),
-                    leaves.present.toString()
-                ];
-                
-                leaveData.forEach((data, colIndex) => {
-                    pdf.text(data, xPos + 1, currentY, { maxWidth: leaveWidths[colIndex] - 2 });
-                    xPos += leaveWidths[colIndex];
-                });
-                
-                currentY += 5;
-            });
-        }
-        
-        function addStudentData(pdf, studentData) {
-            let currentY = pdf.internal.pageSize.height - 100;
-            
-            // Student data header
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(10);
-            pdf.text('STUDENT DETAILS', 105, currentY, { align: 'center' });
-            currentY += 7;
-            
-            // Table headers
-            const headers = ['Class', 'Boys', 'Girls', 'Total', 'Remarks'];
-            const widths = [30, 20, 20, 20, 100];
-            
-            let xPos = 10;
-            headers.forEach((header, index) => {
-                pdf.text(header, xPos + widths[index]/2, currentY, { align: 'center' });
-                xPos += widths[index];
-            });
-            
-            currentY += 5;
-            
-            // Student data rows
+            textContent += `\nSTUDENT INFORMATION:\n`;
             let totalBoys = 0;
             let totalGirls = 0;
-            let totalStudents = 0;
             
-            studentData.forEach(data => {
-                const classTotal = data.boys + data.girls;
-                totalBoys += data.boys;
-                totalGirls += data.girls;
-                totalStudents += classTotal;
-                
-                xPos = 10;
-                const rowData = [
-                    data.class,
-                    data.boys.toString(),
-                    data.girls.toString(),
-                    classTotal.toString(),
-                    data.remarks || ''
-                ];
-                
-                rowData.forEach((cellData, index) => {
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.setFontSize(9);
-                    pdf.text(cellData, xPos + 2, currentY, { maxWidth: widths[index] - 4 });
-                    xPos += widths[index];
-                });
-                
-                currentY += 6;
+            monthData.studentData.forEach(student => {
+                textContent += `${student.class}: Boys ${student.boys}, Girls ${student.girls}, Total ${student.boys + student.girls}\n`;
+                totalBoys += student.boys;
+                totalGirls += student.girls;
             });
             
-            // Totals row
-            currentY += 2;
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFillColor(220, 220, 220);
-            pdf.rect(10, currentY - 3, 190, 6, 'F');
+            textContent += `\nGRAND TOTAL: Boys ${totalBoys}, Girls ${totalGirls}, Total Students ${totalBoys + totalGirls}\n\n`;
+            textContent += `Generated on: ${new Date().toLocaleDateString('en-GB')}\n`;
             
-            xPos = 10;
-            const totals = ['GRAND TOTAL', totalBoys.toString(), totalGirls.toString(), totalStudents.toString(), ''];
-            
-            totals.forEach((total, index) => {
-                pdf.text(total, xPos + widths[index]/2, currentY, { align: 'center' });
-                xPos += widths[index];
-            });
-        }
-        
-        function addSignatures(pdf) {
-            const yPos = pdf.internal.pageSize.height - 30;
-            
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(9);
-            
-            // Left signature
-            pdf.line(30, yPos, 80, yPos);
-            pdf.text('Signature of Head Teacher', 55, yPos + 5, { align: 'center' });
-            
-            // Right signature
-            pdf.line(130, yPos, 180, yPos);
-            pdf.text('Signature of SMC President', 155, yPos + 5, { align: 'center' });
-            
-            // Date
-            pdf.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 105, yPos + 15, { align: 'center' });
+            // Create and download text file
+            const blob = new Blob([textContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Monthly_Return_${monthName}_${monthData.year}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
         
         function formatDate(dateString, format = 'dd/mm/yyyy') {
@@ -2698,10 +2631,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
 
