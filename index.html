@@ -1962,14 +1962,14 @@
                 });
                 
                 // Prepare month data
-                const monthData = {
-                    mobile: currentUser,
-                    month: parseInt(document.getElementById('selectMonth').value),
-                    year: parseInt(elements.selectYear.value),
-                    workingDays: workingDays,
-                    teacherLeaves: teacherLeaves,
-                    studentData: studentData
-                };
+               const monthData = {
+    mobile: currentUser,
+    month: parseInt(document.getElementById('selectMonth').value),
+    year: parseInt(elements.selectYear.value),
+    workingDays: workingDays,
+    teacherLeaves: JSON.stringify(teacherLeaves),  // ← STRING
+    studentData: JSON.stringify(studentData)       // ← STRING
+};
                 
                 // Validate month is not in future
                 const currentDate = new Date();
@@ -2698,6 +2698,7 @@
     </script>
 </body>
 </html>
+
 
 
 
